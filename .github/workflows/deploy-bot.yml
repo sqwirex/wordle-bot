@@ -1,0 +1,71 @@
+name: 🤖 Deploy Wordly Bot
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Deploy Bot via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          port:     ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -xe
+
+            BASE_DIR=/home/${{ secrets.VPS_USER }}/wordle-bot
+            cd $BASE_DIR
+
+            echo "=== Git: fetch & checkout main ==="
+            git fetch origin main
+            git checkout main
+
+            echo "=== Git: commit VM-side changes ==="
+            if [ -n "$(git status --porcelain base_words.json)" ]; then
+              git add base_words.json
+              git commit -m "ci: sync wordlist from VM @ $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              git push --force origin main
+            else
+              echo "No VM-side changes to commit."
+            fi
+
+            echo "=== Git: hard-reset to origin/main ==="
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "=== Docker: build image ==="
+            docker build -t wordly-bot .
+
+            echo "=== Docker: replace container ==="
+            
+            # Останавливаем, ждём и удаляем контейнер, если он всё ещё существует
+            docker stop wordly-bot || true
+            
+            # Немного подождать, чтобы Docker освободил имя
+            sleep 2
+            docker rm wordly-bot || true
+            
+            # Запуск нового контейнера
+            docker run -d \
+              --name wordly-bot \
+              --restart unless-stopped \
+              -v $BASE_DIR:/app \
+              --env-file $BASE_DIR/.env \
+              wordly-bot
+
+            echo "=== Docker: prune dangling images ==="
+            docker image prune -f
+
+            echo "✅ Bot deployed and wordlist synced"

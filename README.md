@@ -1,2 +1,3 @@
-# wordle-bot
-Telegram Game-Bot like Wordle
+# Информация о продуктах
+
+Телеграмм бот находится по юзернейму - [@WordlyMpuBot](https://t.me/WordlyMpuBot)

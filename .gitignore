@@ -1,0 +1,10 @@
+# файл с секретами
+.env
+
+# кеше Python и компилированные файлы
+__pycache__/
+*.py[cod]
+
+# данные пользователей
+**/user_activity.json
+**/suggestions.json
