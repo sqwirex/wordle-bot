@@ -1,4 +1,4 @@
-name: 🤖 Deploy Wordly Bot
+name: 🤖 Deploy Wordle Bot
 
 on:
   push:
@@ -46,24 +46,24 @@ jobs:
             git reset --hard origin/main
 
             echo "=== Docker: build image ==="
-            docker build -t wordly-bot .
+            docker build -t wordle-bot .
 
             echo "=== Docker: replace container ==="
             
             # Останавливаем, ждём и удаляем контейнер, если он всё ещё существует
-            docker stop wordly-bot || true
+            docker stop wordle-bot || true
             
             # Немного подождать, чтобы Docker освободил имя
             sleep 2
-            docker rm wordly-bot || true
+            docker rm wordle-bot || true
             
             # Запуск нового контейнера
             docker run -d \
-              --name wordly-bot \
+              --name wordle-bot \
               --restart unless-stopped \
               -v $BASE_DIR:/app \
               --env-file $BASE_DIR/.env \
-              wordly-bot
+              wordle-bot
 
             echo "=== Docker: prune dangling images ==="
             docker image prune -f
