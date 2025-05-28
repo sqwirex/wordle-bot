@@ -3,6 +3,12 @@ from typing import Dict, List
 from ..config import BASE_FILE
 from ..constants import GREEN, YELLOW, WHITE
 
+
+def normalize(text: str) -> str:
+    # переводим все в нижний регистр и убираем «е»
+    return text.strip().lower().replace("ё", "е")
+
+
 # Читаем список слов из base_words.json
 with BASE_FILE.open("r", encoding="utf-8") as f:
     base_words = json.load(f)
@@ -22,11 +28,6 @@ filtered_additional = list(dict.fromkeys(filtered_additional))
 WORDLIST = sorted(filtered_main)
 with BASE_FILE.open("w", encoding="utf-8") as f:
     json.dump({"main": WORDLIST, "additional": sorted(filtered_additional)}, f, ensure_ascii=False, indent=2)
-
-    
-def normalize(text: str) -> str:
-    # переводим все в нижний регистр и убираем «е»
-    return text.strip().lower().replace("ё", "е")
 
 
 def compute_letter_status(secret: str, guesses: List[str]) -> Dict[str, str]:
