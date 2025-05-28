@@ -1,10 +1,10 @@
-# файл с секретами
+# Секреты
 .env
 
-# кеше Python и компилированные файлы
+# сгенерированные данные
+/src/assets/data/user_activity.json
+/src/assets/data/suggestions.json
+
+# Python-кеш
 __pycache__/
 *.py[cod]
-
-# данные пользователей
-**/user_activity.json
-**/suggestions.json

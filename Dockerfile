@@ -11,7 +11,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # копируем весь код бота
-COPY . ./
+COPY src/ ./src/
 
 # запускаем бота
-CMD ["python", "bot.py"]
+CMD ["python", "-m", "src.bot"]

@@ -33,8 +33,8 @@ jobs:
             git checkout main
 
             echo "=== Git: commit VM-side changes ==="
-            if [ -n "$(git status --porcelain base_words.json)" ]; then
-              git add base_words.json
+            if [ -n "$(git status --porcelain src/assets/data/base_words.json)" ]; then
+              git add src/assets/data/base_words.json
               git commit -m "ci: sync wordlist from VM @ $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
               git push --force origin main
             else
@@ -61,7 +61,7 @@ jobs:
             docker run -d \
               --name wordle-bot \
               --restart unless-stopped \
-              -v $BASE_DIR:/app \
+              -v $BASE_DIR/src/assets/data:/app/src/assets/data \
               --env-file $BASE_DIR/.env \
               wordle-bot
 
