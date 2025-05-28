@@ -11,7 +11,7 @@ FONTS_DIR  = ASSETS_DIR / "fonts"
 
 # Пути к JSON-файлам
 BASE_FILE         = DATA_DIR / "base_words.json"
-USER_ACTIVITY_FILE= DATA_DIR / "user_activity.json"
+USER_FILE= DATA_DIR / "user_activity.json"
 SUGGESTIONS_FILE  = DATA_DIR / "suggestions.json"
 
 # Путь к шрифту для отрисовки доски
