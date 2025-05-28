@@ -32,8 +32,6 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 
-from telegram.error import BadRequest
-
 from dotenv import load_dotenv
 
 # Загрузка .env
@@ -413,14 +411,8 @@ BASE_FILE = Path("base_words.json")
 # Читаем список слов из base_words.json
 with BASE_FILE.open("r", encoding="utf-8") as f:
     base_words = json.load(f)
-    if isinstance(base_words, dict):
-        # Если файл уже в новом формате
-        main_words = base_words.get("main", [])
-        additional_words = base_words.get("additional", [])
-    else:
-        # Если файл в старом формате (просто список)
-        main_words = base_words
-        additional_words = []
+    main_words = base_words.get("main", [])
+    additional_words = base_words.get("additional", [])
 
 # Фильтруем по критериям: только буквы, длина 4–11 символов
 # и нормализуем слова (нижний регистр, замена ё на е)
@@ -490,12 +482,12 @@ def check_ban_status(handler):
         return await handler(update, context, *args, **kwargs)
     return wrapper
 
+
 async def is_banned(user_id: str) -> bool:
     """Проверяет, забанен ли пользователь"""
     store = load_store()
     user_data = store["users"].get(str(user_id), {})
     return user_data.get("banned", False)
-
 
 
 async def send_activity_periodic(context: ContextTypes.DEFAULT_TYPE):
