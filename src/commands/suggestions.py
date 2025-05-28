@@ -6,10 +6,10 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-from storage import load_store, save_store, load_suggestions, save_suggestions
+from ..storage.store import load_store, save_store, load_suggestions, save_suggestions
 from ..config import ADMIN_ID, BASE_FILE
-from constants import REMOVE_INPUT
-from game import WORDLIST
+from ..constants import REMOVE_INPUT
+from ..game.logic import WORDLIST
 
 logger = logging.getLogger(__name__)
 

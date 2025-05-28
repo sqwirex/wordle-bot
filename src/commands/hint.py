@@ -3,9 +3,9 @@ from collections import Counter
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 
-from storage import load_store, save_store, clear_notification_flag
-from commands import check_ban_status
-from game import WORDLIST
+from ..storage.store import load_store, save_store, clear_notification_flag
+from ..commands.middlewares import check_ban_status
+from ..game.logic import WORDLIST
 from ..constants import GUESSING, ASK_LENGTH
 
 @check_ban_status

@@ -1,8 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 
-from storage import load_store, update_user_activity, clear_notification_flag
-from commands import check_ban_status
+from ..storage.store import load_store, update_user_activity, clear_notification_flag
+from ..commands.middlewares import check_ban_status
 
 @check_ban_status
 async def my_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):

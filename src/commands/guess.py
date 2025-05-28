@@ -4,9 +4,10 @@ from zoneinfo import ZoneInfo
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import ContextTypes, ConversationHandler
 
-from storage import load_store, save_store, load_suggestions, save_suggestions
-from commands import check_ban_status
-from game import render_full_board_with_keyboard, WORDLIST, normalize
+from ..storage.store import load_store, save_store, load_suggestions, save_suggestions
+from ..commands.middlewares import check_ban_status
+from ..game.logic import WORDLIST, normalize
+from ..game.render import render_full_board_with_keyboard
 from ..config import BASE_FILE
 from ..constants import GUESSING
 
