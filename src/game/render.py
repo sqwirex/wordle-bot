@@ -1,7 +1,7 @@
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
-from .logic import make_feedback, compute_letter_status
+from game import make_feedback, compute_letter_status
 from ..constants import GREEN, YELLOW, WHITE
 
 # Русская раскладка виртуальной клавиатуры

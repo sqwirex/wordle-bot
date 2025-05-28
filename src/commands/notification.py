@@ -2,8 +2,8 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from ..storage.store import load_store, save_store, clear_notification_flag
-from .middlewares import check_ban_status
+from storage import load_store, save_store, clear_notification_flag
+from commands import check_ban_status
 
 logger = logging.getLogger(__name__)
 

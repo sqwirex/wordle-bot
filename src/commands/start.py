@@ -1,8 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from ..storage.store import load_store, update_user_activity, clear_notification_flag
-from .middlewares import check_ban_status
+from storage import load_store, update_user_activity, clear_notification_flag
+from commands import check_ban_status
 from ..constants import GUESSING
 
 @check_ban_status

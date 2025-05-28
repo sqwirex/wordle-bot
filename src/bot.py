@@ -9,52 +9,41 @@ from telegram.ext import (
     ConversationHandler,
     filters
 )
-
-from .commands import (
+# Импортируем константы и команды
+from .constants import (
+    ASK_LENGTH, GUESSING,
+    FEEDBACK_CHOOSE, FEEDBACK_WORD,
+    REMOVE_INPUT, BROADCAST
+)
+from commands import (
     start_command as start,
-    play_command as ask_length,
+    play_command  as ask_length,
     guess_command as handle_guess,
-    hint_command as hint,
+    hint_command  as hint,
     reset_command as reset,
     stats_command as my_stats,
-    feedback_command as feedback_not_allowed_ask,
-    suggestions_command as suggest_white_callback,
-    notification_command as notification_toggle,
-    admin_command as dict_file,
-    broadcast_command as send_activity_periodic,
-    unknown_command as send_unfinished_games
-)
 
-from .commands.play import receive_length, ignore_ask
-from .commands.reset import reset_global
-from .commands.hint import hint_not_allowed
-from .commands.guess import ignore_guess
-from .commands.stats import only_outside_game
-from .commands.feedback import feedback_not_allowed_guess
-from .commands.admin import ban_user, unban_user, dump_activity, set_commands
+    feedback_not_allowed_ask, feedback_not_allowed_guess,
+    feedback_start, feedback_choose, feedback_word,
+    block_during_feedback, feedback_cancel,
 
-# States for conversation handler
-from .constants import ASK_LENGTH, GUESSING
+    suggestions_view, suggestions_approve,
+    suggestions_remove_start, suggestions_remove_process,
+    suggestions_move_start, suggestions_move_process,
 
-# Импорт для feedback и suggestions
-from .commands.feedback import (
-    feedback_start, feedback_choose, feedback_word, block_during_feedback, feedback_cancel
-)
-from .commands.suggestions import (
-    suggestions_view, suggestions_approve, suggestions_remove_start,
-    suggestions_remove_process, suggestions_move_start, suggestions_move_process
-)
-from .commands.broadcast import (
-    broadcast_start, broadcast_send, broadcast_cancel
-)
-from .commands.stats import global_stats
+    broadcast_start, broadcast_send, broadcast_cancel,
+    send_activity_periodic,
 
-# Для ConversationHandler состояний
-from .constants import (
-    FEEDBACK_CHOOSE, FEEDBACK_WORD, REMOVE_INPUT, BROADCAST
-)
+    ban_user, unban_user, dump_activity,
+    set_commands, only_outside_game,
+    hint_not_allowed, receive_length,
+    ignore_ask, ignore_guess,
+    notification_toggle, dict_file,
+    send_unfinished_games,
 
-from .commands.unknown import unknown_text
+    unknown_text, global_stats, reset_global,
+    suggest_white_callback
+)
 
 # Загрузка .env
 load_dotenv()

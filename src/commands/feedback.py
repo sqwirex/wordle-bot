@@ -4,9 +4,9 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-from ..storage.store import load_store, save_store, load_suggestions, save_suggestions, clear_notification_flag
-from .middlewares import check_ban_status
-from ..game.logic import WORDLIST, normalize
+from storage import load_store, save_store, load_suggestions, save_suggestions, clear_notification_flag
+from commands import check_ban_status
+from game import WORDLIST, normalize
 from ..config import SUGGESTIONS_FILE
 from ..constants import FEEDBACK_CHOOSE, FEEDBACK_WORD, GUESSING, ASK_LENGTH
 

@@ -5,7 +5,7 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-from ..storage.store import load_store
+from storage import load_store
 from ..config import ADMIN_ID
 from ..constants import BROADCAST
 
