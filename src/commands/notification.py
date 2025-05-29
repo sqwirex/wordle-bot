@@ -1,9 +1,12 @@
+import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from src.storage.store import load_store, save_store, clear_notification_flag
 from src.decorators.checkban import check_ban_status
 from src.languages.russian import MSG_WAKE_UP, MSG_NOTIFICATIONS_STATE, STATE_OFF, STATE_ON
+
+logger = logging.getLogger(__name__)
 
 async def send_unfinished_games(context: ContextTypes.DEFAULT_TYPE):
     """
