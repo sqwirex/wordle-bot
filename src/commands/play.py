@@ -6,8 +6,11 @@ from src.storage.store import load_store, save_store, clear_notification_flag, u
 from src.main.constants import ASK_LENGTH, GUESSING
 from src.game.logic import WORDLIST
 from src.decorators.checkban import check_ban_status
+from src.languages.russian import (GAME_CONTINUE, LETTERS_QUESTION, 
+                                   NOT_FIND_WORDS, NEED_FIX_LETTERS, 
+                                   START_AND_PLAY_NOT_WORK, MSG_GAME_START
+)
 
-# ...existing code...
 @check_ban_status
 async def ask_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["state"] = ASK_LENGTH
@@ -26,11 +29,14 @@ async def ask_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "guesses": cg["guesses"],
         })
         await update.message.reply_text(
-            f"Продолжаем игру: {len(cg['secret'])}-буквенное слово, ты на попытке {cg['attempts']}. Вводи догадку:"
+            GAME_CONTINUE.format(
+                letters=len(cg['secret']),
+                attempt=cg['attempts']
+            )
         )
         return GUESSING
     
-    await update.message.reply_text("Сколько букв в слове? (4–11)")
+    await update.message.reply_text(LETTERS_QUESTION)
     return ASK_LENGTH
 
 
@@ -39,13 +45,13 @@ async def receive_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_user_activity(update.effective_user)
     text = update.message.text.strip()
     if not text.isdigit() or not 4 <= int(text) <= 11:
-        await update.message.reply_text("Нужно число от 4 до 11.")
+        await update.message.reply_text(NEED_FIX_LETTERS)
         return ASK_LENGTH
 
     length = int(text)
     candidates = [w for w in WORDLIST if len(w) == length]
     if not candidates:
-        await update.message.reply_text("Не нашел слов такой длины. Попробуй еще:")
+        await update.message.reply_text(NOT_FIND_WORDS)
         return ASK_LENGTH
 
     secret = random.choice(candidates)
@@ -67,7 +73,7 @@ async def receive_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["state"] = GUESSING
 
     await update.message.reply_text(
-        f"Я загадал слово из {length} букв. У тебя 6 попыток. Введи первую догадку:"
+        MSG_GAME_START.format(length=length)
     )
     
     return GUESSING
@@ -75,5 +81,5 @@ async def receive_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_ban_status
 async def ignore_ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Команды /start и /play не работают во время игры — сначала /reset.")
+    await update.message.reply_text(START_AND_PLAY_NOT_WORK)
     return ASK_LENGTH

@@ -10,6 +10,12 @@ from src.game.logic import WORDLIST, normalize
 from src.game.render import render_full_board_with_keyboard
 from src.main.config import BASE_FILE
 from src.main.constants import GUESSING
+from src.languages.russian import (SPACE_ATTENTION, MSG_LENGTH_VALIDATE, 
+                                   SUGGESTION_SUGGESTED_NOW, SUGGESTED_ADD_WORD, 
+                                   MSG_NOT_FOUND, MSG_ATTEMPT, pluralize_attempt,
+                                   MSG_WIN, MSG_GAME_OVER, START_AND_PLAY_NOT_WORK,
+                                   MSG_SUGGESTION_ADDED
+) 
 
 @check_ban_status
 async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -23,11 +29,6 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Обновляем время последнего визита
     user["last_seen_msk"] = datetime.now(ZoneInfo("Europe/Moscow")).isoformat()
 
-    # Проверяем активную игру
-    if "current_game" not in user:
-        await update.message.reply_text("Нет активной игры, начни /play")
-        return ConversationHandler.END
-
     cg     = user["current_game"]
     guess = normalize(update.message.text)
     secret = cg["secret"]
@@ -38,12 +39,14 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Проверяем на пробелы до проверки длины
     if " " in guess:
-        await update.message.reply_text("Пожалуйста, введите слово без пробелов.")
+        await update.message.reply_text(SPACE_ATTENTION)
         return GUESSING
     
     # Валидация длины
     if len(guess) != length:
-        await update.message.reply_text(f"Введите слово из {length} букв.")
+        await update.message.reply_text(
+            MSG_LENGTH_VALIDATE.format(length=length)
+        )
         return GUESSING
     
     # Проверяем, не предлагал ли пользователь это слово ранее
@@ -52,10 +55,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     suggested_words = user.get("suggested_words", [])
     
     if normalized_guess in suggested_words and normalized_guess not in WORDLIST:
-        await update.message.reply_text(
-            "Извините, это слово уже было предложено вами, но еще не добавлено в словарь.\n"
-            "Пожалуйста, дождитесь его проверки администратором."
-        )
+        await update.message.reply_text(SUGGESTION_SUGGESTED_NOW)
         return GUESSING
     
     # Проверяем слово в основном и дополнительном списках
@@ -70,20 +70,20 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [
             [
                 InlineKeyboardButton(
-                    "Предложить добавить слово",
+                    SUGGESTED_ADD_WORD,
                     callback_data=f"suggest_white:{guess}"
                 )
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
-            f"Слово «{normalized_guess}» не найдено в словаре.",
+            MSG_NOT_FOUND.format(guess=normalized_guess),
             reply_markup=reply_markup
         )
         return GUESSING
 
     if " " in guess:
-        await update.message.reply_text("Пожалуйста, введите слово без пробелов.")
+        await update.message.reply_text(SPACE_ATTENTION)
         return GUESSING
 
     # Сохраняем ход
@@ -101,7 +101,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_photo(
         photo=InputFile(img_buf, filename="wordle_board.png"),
-        caption=f"Попытка {cg['attempts']} из 6"
+        caption=MSG_ATTEMPT.format(attempt=cg['attempts'])
     )
 
     # —— Победа ——
@@ -126,11 +126,13 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "wins":     top_data["stats"]["wins"]
         }
 
+        attempts = cg['attempts']
+        attempt_word = pluralize_attempt(attempts)
+
         await update.message.reply_text(
-            f"🎉 Поздравляю! Угадал за {cg['attempts']} "
-            f"{'попытка' if cg['attempts']==1 else 'попытки' if 2<=cg['attempts']<=4 else 'попыток'}.\n"
-            "Чтобы сыграть вновь, введи /play."
+            MSG_WIN.format(attempts=attempts, attempt_word=attempt_word)
         )
+
         del user["current_game"]
         context.user_data.pop("game_active", None)
         context.user_data["just_done"] = True
@@ -150,9 +152,9 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         g["win_rate"] = g["total_wins"] / g["total_games"]
 
         await update.message.reply_text(
-            f"💔 Попытки закончились. Было слово «{secret}».\n"
-            "Чтобы начать новую игру, введи /play."
+            MSG_GAME_OVER.format(secret=secret)
         )
+
         del user["current_game"]
         context.user_data.pop("game_active", None)
         context.user_data["just_done"] = True
@@ -165,7 +167,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_ban_status
 async def ignore_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Команды /start и /play не работают во время игры — сначала /reset.")
+    await update.message.reply_text(START_AND_PLAY_NOT_WORK)
     return GUESSING
 
 
@@ -206,8 +208,7 @@ async def suggest_white_callback(update: Update, context: ContextTypes.DEFAULT_T
     
     # Обновляем сообщение, убирая кнопку
     await query.edit_message_text(
-        f"✅ Слово «{word}» добавлено в предложения для белого списка.\n"
-        "Спасибо за ваш вклад! Администратор рассмотрит ваше предложение."
+        MSG_SUGGESTION_ADDED.format(word=word)
     )
     
     return GUESSING

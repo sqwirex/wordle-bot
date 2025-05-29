@@ -7,6 +7,7 @@ from src.storage.store import load_store, save_store, clear_notification_flag
 from src.decorators.checkban import check_ban_status
 from src.game.logic import WORDLIST
 from src.main.constants import GUESSING, ASK_LENGTH
+from src.languages.russian import ONLY_IN_GAME, HINT_USED, HINT_NOT_FIND, MSG_HINT
 
 @check_ban_status
 async def hint(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -18,14 +19,14 @@ async def hint(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Проверяем, есть ли активная игра
     if "current_game" not in user_entry:
-        await update.message.reply_text("Эту команду можно использовать только во время игры.")
+        await update.message.reply_text(ONLY_IN_GAME)
         return ConversationHandler.END
 
     cg = user_entry["current_game"]
 
     # Если подсказка уже взята — не даем еще одну
     if cg.get("hint_used", False):
-        await update.message.reply_text("Подсказка уже использована в этой игре.")
+        await update.message.reply_text(HINT_USED)
         return GUESSING
 
     secret = cg["secret"]
@@ -50,7 +51,7 @@ async def hint(update: Update, context: ContextTypes.DEFAULT_TYPE):
             candidates.append(w)
 
     if not candidates:
-        await update.message.reply_text("К сожалению, подходящих подсказок нет.")
+        await update.message.reply_text(HINT_NOT_FIND)
         return GUESSING
 
     hint_word = random.choice(candidates)
@@ -59,7 +60,9 @@ async def hint(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cg["hint_used"] = True
     save_store(store)
 
-    await update.message.reply_text(f"🔍 Подсказка: {hint_word}")
+    await update.message.reply_text(
+        MSG_HINT.format(hint_word=hint_word)
+    )
     return GUESSING
 
 
@@ -67,6 +70,6 @@ async def hint(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def hint_not_allowed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Сообщение, если /hint вызвали не во время игры."""
     clear_notification_flag(str(update.effective_user.id))
-    await update.message.reply_text("Эту команду можно использовать только во время игры.")
+    await update.message.reply_text(ONLY_IN_GAME)
     # если сейчас выбираем длину — останемся в ASK_LENGTH, иначе в GUESSING
     return context.user_data.get("state", ASK_LENGTH)

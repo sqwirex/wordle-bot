@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 
 from src.storage.store import load_store, save_store, clear_notification_flag, update_user_activity
 from src.decorators.checkban import check_ban_status
+from src.languages.russian import MSG_RESET, MSG_RESET_DENIED
 
 @check_ban_status
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -16,7 +17,7 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_store(store)
 
     context.user_data.clear()
-    await update.message.reply_text("Прогресс сброшен. Жду /play для новой игры.")
+    await update.message.reply_text(MSG_RESET)
     return ConversationHandler.END
 
 
@@ -24,4 +25,4 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def reset_global(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_user_activity(update.effective_user)
     clear_notification_flag(str(update.effective_user.id))
-    await update.message.reply_text("Сейчас нечего сбрасывать — начните игру: /play")
+    await update.message.reply_text(MSG_RESET_DENIED)

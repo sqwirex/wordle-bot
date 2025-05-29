@@ -2,7 +2,8 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
 from src.game.logic import make_feedback, compute_letter_status
-from src.main.constants import GREEN, YELLOW, WHITE, KB_LAYOUT
+from src.main.constants import GREEN, YELLOW, WHITE
+from src.languages.russian import KB_LAYOUT, SPECIAL_RUSSIAN_LETTERS
 from src.main.config import FONT_FILE
 
 
@@ -80,8 +81,7 @@ def render_full_board_with_keyboard(
                 bbox = draw.textbbox((0,0), ch, font=font_board)
                 w, h = bbox[2]-bbox[0], bbox[3]-bbox[1]
                 # Смещение по y для всех, кроме Щ, Ц, Д, Й
-                special_letters = {'щ', 'ц', 'д', 'й'}
-                if ch.lower() in special_letters:
+                if ch.lower() in SPECIAL_RUSSIAN_LETTERS:
                     y_offset = -board_sq * 0.05  # специальные буквы чуть выше (5%)
                 else:
                     y_offset = -board_sq * 0.10  # остальные буквы выше (10%)
@@ -120,8 +120,7 @@ def render_full_board_with_keyboard(
             bbox   = draw.textbbox((0,0), letter, font=font_kb)
             w, h   = bbox[2]-bbox[0], bbox[3]-bbox[1]
             # Смещение по y для всех, кроме Щ, Ц, Д, Й
-            special_letters = {'щ', 'ц', 'д', 'й'}
-            if ch in special_letters:
+            if ch in SPECIAL_RUSSIAN_LETTERS:
                 y_offset = -kb_sq * 0.05  # специальные буквы чуть выше (5%)
             else:
                 y_offset = -kb_sq * 0.10  # остальные буквы выше (10%)

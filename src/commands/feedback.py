@@ -9,6 +9,13 @@ from src.decorators.checkban import check_ban_status
 from src.game.logic import WORDLIST, normalize
 from src.main.config import SUGGESTIONS_FILE
 from src.main.constants import FEEDBACK_CHOOSE, FEEDBACK_WORD, GUESSING, ASK_LENGTH
+from src.languages.russian import (FB_ONLY_OUTSIDE_GAME, BLACK_LIST_BUTTON, WHITE_LIST_BUTTON,
+                                   CANCEL_BUTTON, ASK_LIST_QUESTION, MSG_CANCELED, MSG_CLICK_BUTTON,
+                                   MSG_TYPE_TEST, SPACE_ATTENTION, MSG_FILE_SO_BIG, MSG_ADD_BLACK_LIST,
+                                   MSG_DENIED_BLACK_LIST, MSG_ADD_WHITE_LIST, MSG_DENIED_WHITE_LIST_ALREADY_HAVE, 
+                                   MSG_DENIED_WHITE_LIST_LENGHT, MSG_NOT_USE_COMMANDS_WHILE_FB
+
+)
 
 
 @check_ban_status
@@ -19,19 +26,18 @@ async def feedback_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     clear_notification_flag(str(update.effective_user.id))
     if "current_game" in u or context.user_data.get("game_active"):
         await update.message.reply_text(
-            "Нельзя отправлять фидбек пока идет игра или после перезапуска.\n"
-            "Сначала продолжи играть /play, а потом либо закончи игру, либо сбрось /reset",
+            FB_ONLY_OUTSIDE_GAME,
             reply_markup=ReplyKeyboardRemove(),
         )
         return ConversationHandler.END
 
     # предлагаем выбрать список
     keyboard = [
-        ["Черный список", "Белый список"],
-        ["Отмена"]
+        [BLACK_LIST_BUTTON, WHITE_LIST_BUTTON],
+        [CANCEL_BUTTON]
     ]
     markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    await update.message.reply_text("Куда добавить слово?", reply_markup=markup)
+    await update.message.reply_text(ASK_LIST_QUESTION, reply_markup=markup)
 
     # запомним текущее состояние
     context.user_data["feedback_state"] = FEEDBACK_CHOOSE
@@ -42,21 +48,21 @@ async def feedback_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_ban_status
 async def feedback_choose(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-    if text == "Отмена":
-        await update.message.reply_text("Отменено.", reply_markup=ReplyKeyboardRemove())
+    if text == CANCEL_BUTTON:
+        await update.message.reply_text(MSG_CANCELED, reply_markup=ReplyKeyboardRemove())
         context.user_data.pop("in_feedback", None)
         context.user_data["just_done"] = True
         return ConversationHandler.END
 
-    if text not in ("Черный список", "Белый список"):
-        await update.message.reply_text("Пожалуйста, нажимайте одну из кнопок.")
+    if text not in (BLACK_LIST_BUTTON, WHITE_LIST_BUTTON):
+        await update.message.reply_text(MSG_CLICK_BUTTON)
         return FEEDBACK_CHOOSE
 
     # куда кладем
-    context.user_data["fb_target"] = "black" if text == "Черный список" else "white"
+    context.user_data["fb_target"] = "black" if text == BLACK_LIST_BUTTON else "white"
     # убираем клавиатуру и спрашиваем слово
     await update.message.reply_text(
-        "Введите слово для предложения:", reply_markup=ReplyKeyboardRemove()
+        MSG_TYPE_TEST, reply_markup=ReplyKeyboardRemove()
     )
 
     context.user_data["feedback_state"] = FEEDBACK_WORD
@@ -69,15 +75,13 @@ async def feedback_word(update: Update, context: ContextTypes.DEFAULT_TYPE):
     target = context.user_data["fb_target"]
 
     if SUGGESTIONS_FILE.exists() and SUGGESTIONS_FILE.stat().st_size >= 1_000_000:
-        await update.message.reply_text(
-            "Прости, сейчас нельзя добавить новое слово — файл предложений уже слишком большой."
-        )
+        await update.message.reply_text(MSG_FILE_SO_BIG)
         context.user_data.pop("in_feedback", None)
         context.user_data["just_done"] = True
         return ConversationHandler.END
 
     if " " in word:
-        await update.message.reply_text("Пожалуйста, введите слово без пробелов.")
+        await update.message.reply_text(SPACE_ATTENTION)
         return FEEDBACK_WORD
 
     suggestions = load_suggestions()
@@ -99,9 +103,9 @@ async def feedback_word(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 store["users"][user_id]["suggested_words"].append(word)
                 save_store(store)
                 
-            resp = "Спасибо, добавил в предложения для чёрного списка."
+            resp = MSG_ADD_BLACK_LIST
         else:
-            resp = "Нельзя: слово должно быть в основном словаре."
+            resp = MSG_DENIED_BLACK_LIST
 
     # Белый список: добавляем, только если слова нет в словаре и длина 4–11
     else:
@@ -120,14 +124,12 @@ async def feedback_word(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 store["users"][user_id]["suggested_words"].append(word)
                 save_store(store)
                 
-            resp = "Спасибо, добавил в предложения для белого списка."
+            resp = MSG_ADD_WHITE_LIST
         else:
             if word in WORDLIST:
-                resp = "Нельзя: такое слово уже есть в основном словаре."
+                resp = MSG_DENIED_WHITE_LIST_ALREADY_HAVE
             elif not (4 <= len(word) <= 11):
-                resp = "Нельзя: длина слова должна быть от 4 до 11 символов."
-            else:
-                resp = "Нельзя: слово должно быть вне основного словаря и из 4–11 букв."
+                resp = MSG_DENIED_WHITE_LIST_LENGHT
 
     await update.message.reply_text(resp)
     context.user_data.pop("in_feedback", None)
@@ -138,33 +140,25 @@ async def feedback_word(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_ban_status
 async def feedback_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
-    await update.message.reply_text("Отменено.", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(MSG_CANCELED, reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 
 @check_ban_status
 async def block_during_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # любой посторонний ввод заглушаем
-    await update.message.reply_text(
-        "Сейчас идет ввод для фидбека, нельзя использовать команды."
-    )
+    await update.message.reply_text(MSG_NOT_USE_COMMANDS_WHILE_FB)
     # возвращаемся в текущее состояние
     return context.user_data.get("feedback_state", FEEDBACK_CHOOSE)
 
 
 @check_ban_status
 async def feedback_not_allowed_ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Нельзя отправлять фидбек пока вы выбираете длину слова. "
-        "Сначала укажите длину (4–11)."
-    )
+    await update.message.reply_text(FB_ONLY_OUTSIDE_GAME)
     return ASK_LENGTH
 
 
 @check_ban_status
 async def feedback_not_allowed_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Нельзя отправлять фидбек во время игры. "
-        "Сначала закончите игру или /reset."
-    )
+    await update.message.reply_text(FB_ONLY_OUTSIDE_GAME)
     return GUESSING

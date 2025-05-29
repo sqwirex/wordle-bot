@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 import logging
 
 from src.storage.store import load_store, save_store
+from src.languages.russian import BAN_REMINDER_MESSENGE
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,9 @@ def check_ban_status(handler):
                 # Проверяем, не отправляли ли мы уже сообщение в этом обновлении
                 if context.user_data.get("last_ban_update_id") != update.update_id:
                     if update.callback_query:
-                        await update.callback_query.answer("❌ Вы заблокированы в этом боте.", show_alert=True)
+                        await update.callback_query.answer(BAN_REMINDER_MESSENGE, show_alert=True)
                     else:
-                        await update.message.reply_text("❌ Вы заблокированы в этом боте.")
+                        await update.message.reply_text(BAN_REMINDER_MESSENGE)
                     # Запоминаем ID обновления
                     context.user_data["last_ban_update_id"] = update.update_id
                 return ConversationHandler.END

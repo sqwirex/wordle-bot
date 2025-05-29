@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 
 from src.storage.store import load_store, save_store, clear_notification_flag
 from src.decorators.checkban import check_ban_status
+from src.languages.russian import MSG_WAKE_UP, MSG_NOTIFICATIONS_STATE, STATE_OFF, STATE_ON
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +31,7 @@ async def send_unfinished_games(context: ContextTypes.DEFAULT_TYPE):
         cg = udata["current_game"]
         length = len(cg["secret"])
         attempts = cg["attempts"]
-        text = (
-            "Я вернулся из спячки!\n"
-            f"⏳ У вас есть незавершённая игра:\n"
-            f"{length}-буквенное слово, вы на попытке {attempts}.\n"
-            "Нажмите /play или /start, чтобы продолжить!"
-        )
+        text = MSG_WAKE_UP.format(length=length, attempts=attempts)
         try:
             await context.bot.send_message(chat_id=int(uid), text=text)
         except Exception as e:
@@ -57,5 +53,7 @@ async def notification_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE
     current = user.get("notify_on_wakeup", True)
     user["notify_on_wakeup"] = not current
     save_store(store)
-    state = "включены" if not current else "отключены"
-    await update.message.reply_text(f"Уведомления при пробуждении бота {state}.")
+    state = STATE_ON if not current else STATE_OFF
+    await update.message.reply_text(
+        MSG_NOTIFICATIONS_STATE.format(state=state)
+    )
