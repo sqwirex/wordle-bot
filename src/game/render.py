@@ -13,21 +13,21 @@ def render_full_board_with_keyboard(
     total_rows: int = 6,
     max_width_px: int = 1080
 ) -> BytesIO:
-    # --- антиалиасинг: рендерим в 3x размере, потом уменьшаем ---
+    # antialiasing: render at 3x size, then reduce
     scale = 3
     padding   = 6 * scale
     board_def = 80 * scale
     cols      = len(secret)
     total_pad = (cols + 1) * padding
 
-    # размер квадратика доски
+    # board square size
     board_sq = min(board_def, (max_width_px * scale - total_pad) // cols)
     board_sq = max(20 * scale, board_sq)
 
     board_w = cols * board_sq + total_pad
     board_h = total_rows * board_sq + (total_rows + 1) * padding
 
-    # выбираем масштаб клавиш по длине слова
+    # select keyboard scale based on word length
     if cols >= 8:
         factor = 0.6
     elif cols == 7:
@@ -43,12 +43,12 @@ def render_full_board_with_keyboard(
     kb_rows = len(KB_LAYOUT)
     img_h   = board_h + kb_rows * kb_sq + (kb_rows + 1) * padding
 
-    img        = Image.new("RGB", (board_w, img_h), (24, 24, 32))  # почти чёрный фон
+    img        = Image.new("RGB", (board_w, img_h), (24, 24, 32))
     draw       = ImageDraw.Draw(img)
     font_board = ImageFont.truetype(FONT_FILE, int(board_sq * 0.6))
     font_kb    = ImageFont.truetype(FONT_FILE, int(kb_sq * 0.6))
 
-    # --- игровая доска (6 строк) ---
+    # game board (6 rows)
     for r in range(total_rows):
         y0 = padding + r * (board_sq + padding)
         if r < len(guesses):
@@ -71,26 +71,25 @@ def render_full_board_with_keyboard(
             elif color == WHITE:
                 bg = (72,73,84)  # #484954
             else:
-                bg = (211,214,218)  # #d3d6da (неактивная)
+                bg = (211,214,218)  # #d3d6da
 
             draw.rectangle([x0,y0,x1,y1], fill=bg, outline=(40,40,50), width=2)
 
             if guess:
                 ch = guess[c].upper()
-                tc = (255,255,255)  # белые буквы всегда
+                tc = (255,255,255)
                 bbox = draw.textbbox((0,0), ch, font=font_board)
                 w, h = bbox[2]-bbox[0], bbox[3]-bbox[1]
-                # Смещение по y для всех, кроме Щ, Ц, Д, Й
                 if ch.lower() in SPECIAL_RUSSIAN_LETTERS:
-                    y_offset = -board_sq * 0.05  # специальные буквы чуть выше (5%)
+                    y_offset = -board_sq * 0.05  # special letters slightly higher (5%)
                 else:
-                    y_offset = -board_sq * 0.10  # остальные буквы выше (10%)
+                    y_offset = -board_sq * 0.10  # other letters higher (10%)
                 draw.text(
                     (x0 + (board_sq-w)/2, y0 + (board_sq-h)/2 + y_offset),
                     ch, font=font_board, fill=tc
                 )
 
-    # --- мини-клавиатура ---
+    # mini-keyboard
     letter_status = compute_letter_status(secret, guesses)
     for ri, row in enumerate(KB_LAYOUT):
         y0      = board_h + padding + ri * (kb_sq + padding)
@@ -112,24 +111,23 @@ def render_full_board_with_keyboard(
             elif st == "red":
                 bg = (72,73,84)  # #484954
             else:
-                bg = (129,130,155)  # #81829b — обычные буквы на клавиатуре
+                bg = (129,130,155)  # #81829b
 
             draw.rectangle([x0,y0,x1,y1], fill=bg, outline=(40,40,50), width=1)
-            tc = (255,255,255)  # белые буквы всегда
+            tc = (255,255,255)
             letter = ch.upper()
             bbox   = draw.textbbox((0,0), letter, font=font_kb)
             w, h   = bbox[2]-bbox[0], bbox[3]-bbox[1]
-            # Смещение по y для всех, кроме Щ, Ц, Д, Й
             if ch in SPECIAL_RUSSIAN_LETTERS:
-                y_offset = -kb_sq * 0.05  # специальные буквы чуть выше (5%)
+                y_offset = -kb_sq * 0.05  # special letters slightly higher (5%)
             else:
-                y_offset = -kb_sq * 0.10  # остальные буквы выше (10%)
+                y_offset = -kb_sq * 0.10  # other letters higher (10%)
             draw.text(
                 (x0 + (kb_sq-w)/2, y0 + (kb_sq-h)/2 + y_offset),
                 letter, font=font_kb, fill=tc
             )
 
-    # уменьшение до нормального размера с антиалиасингом
+    # resize to normal size with antialiasing
     final_img = img.resize((board_w // scale, img_h // scale), Image.LANCZOS)
     final_buf = BytesIO()
     final_img.save(final_buf, format="PNG")

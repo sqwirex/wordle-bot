@@ -14,7 +14,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     clear_notification_flag(str(update.effective_user.id))
     if "current_game" in u:
         cg = u["current_game"]
-        # заполняем context.user_data из cg:
         context.user_data.update({
             "secret": cg["secret"],
             "length": len(cg["secret"]),

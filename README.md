@@ -1,3 +1,3 @@
-# Информация о продуктах
+# Information about Bot
 
-Телеграмм бот находится по юзернейму - [@WordlyMpuBot](https://t.me/WordlyMpuBot)
+Bot's username - [@WordlyMpuBot](https://t.me/WordlyMpuBot)

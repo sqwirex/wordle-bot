@@ -1,5 +1,6 @@
 import logging
 from dotenv import load_dotenv
+
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -8,50 +9,56 @@ from telegram.ext import (
     ConversationHandler,
     filters
 )
+
 from src.main.config import (BOT_TOKEN)
-# Импортируем константы и команды
+
 from src.main.constants import (
     ASK_LENGTH, GUESSING,
     FEEDBACK_CHOOSE, FEEDBACK_WORD,
     REMOVE_INPUT, BROADCAST,
 )
+
+from src.commands.unknown     import unknown_text
 from src.commands.start import start
 from src.commands.play import ask_length, receive_length, ignore_ask
 from src.commands.guess import handle_guess, ignore_guess, suggest_white_callback
 from src.commands.hint import hint, hint_not_allowed
 from src.commands.reset import reset, reset_global
+from src.commands.notification import notification_toggle, send_unfinished_games
 from src.commands.stats import my_stats, only_outside_game, global_stats
+
 from src.commands.feedback    import (feedback_not_allowed_ask,
                                       feedback_not_allowed_guess,
                                       feedback_start,
                                       feedback_choose,
                                       feedback_word,
                                       block_during_feedback,
-                                      feedback_cancel)
-from src.commands.suggestions import (suggestions_view,
-                                      suggestions_approve,
-                                      suggestions_remove_start,
-                                      suggestions_remove_process,
-                                      suggestions_move_start,
-                                      suggestions_move_process,
-                                      )
-from src.commands.broadcast   import (broadcast_start,
-                                      broadcast_send,
-                                      broadcast_cancel,
-                                      )
+                                      feedback_cancel
+)
+
 from src.commands.admin       import (ban_user, 
                                       unban_user, 
                                       dump_activity, 
                                       set_commands,
                                       dict_file,
                                       send_activity_periodic
-                                      )
-from src.commands.notification import notification_toggle, send_unfinished_games
-from src.commands.unknown     import unknown_text
-# Загрузка .env
+)
+
+from src.commands.suggestions import (suggestions_view,
+                                      suggestions_approve,
+                                      suggestions_remove_start,
+                                      suggestions_remove_process,
+                                      suggestions_move_start,
+                                      suggestions_move_process,
+)
+
+from src.commands.broadcast   import (broadcast_start,
+                                      broadcast_send,
+                                      broadcast_cancel,
+)
+
 load_dotenv()
 
-# Логирование
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
@@ -73,7 +80,7 @@ def main():
         .build()
     )
 	
-    # отправляем один раз при загрузке
+    # send once on start
     app.job_queue.run_once(send_activity_periodic, when=0)
     app.job_queue.run_once(send_unfinished_games, when=1)
 
@@ -93,7 +100,6 @@ def main():
     fallbacks=[CommandHandler("cancel", feedback_cancel)],
     allow_reentry=True
     )
-
     app.add_handler(feedback_conv)
     
     
@@ -133,11 +139,9 @@ def main():
     app.add_handler(conv)
 
     
-    # 1) просмотр и подтверждение предложений
     app.add_handler(CommandHandler("suggestions_view", suggestions_view))
     app.add_handler(CommandHandler("suggestions_approve", suggestions_approve))
 
-    # 2) удаление через ConversationHandler
     remove_conv = ConversationHandler(
         entry_points=[CommandHandler("suggestions_remove", suggestions_remove_start)],
         states={
@@ -148,11 +152,9 @@ def main():
         fallbacks=[CommandHandler("cancel", feedback_cancel)],
         allow_reentry=True,
     )
-
     app.add_handler(remove_conv)
 
 
-    # 3) перемещение через ConversationHandler
     move_conv = ConversationHandler(
         entry_points=[CommandHandler("suggestions_move", suggestions_move_start)],
         states={
@@ -163,7 +165,6 @@ def main():
         fallbacks=[CommandHandler("cancel", feedback_cancel)],
         allow_reentry=True,
     )
-
     app.add_handler(move_conv)
 
 
@@ -177,7 +178,6 @@ def main():
         fallbacks=[CommandHandler("broadcast_cancel", broadcast_cancel)],
         allow_reentry=True,
         )
-
     app.add_handler(broadcast_conv)
 
     app.add_handler(
@@ -186,7 +186,7 @@ def main():
         )
     
 
-    # Глобальные
+    # global
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("hint", hint_not_allowed))
     app.add_handler(CommandHandler("reset", reset_global))
@@ -198,7 +198,6 @@ def main():
     app.add_handler(CommandHandler("ban", ban_user))
     app.add_handler(CommandHandler("unban", unban_user))
     
-    # Обработчик для кнопки предложения слова в белый список
     app.add_handler(CallbackQueryHandler(suggest_white_callback, pattern=r'^suggest_white:'))
 
     app.run_polling(drop_pending_updates=True)

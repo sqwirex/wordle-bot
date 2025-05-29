@@ -12,7 +12,6 @@ from src.main.constants import BROADCAST
 logger = logging.getLogger(__name__)
 
 async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # только админ
     context.user_data["in_broadcast"] = True
     if update.effective_user.id != ADMIN_ID:
         return
@@ -22,13 +21,13 @@ async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def broadcast_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
-    store = load_store()      # берем тех, кого мы когда-то записали
+    store = load_store()      # get users we've recorded before
     failed = []
     skipped = 0
     total_sent = 0
     
     for uid, user_data in store["users"].items():
-        # Пропускаем забаненных пользователей
+        # Skip banned users
         if user_data.get("banned", False):
             skipped += 1
             continue

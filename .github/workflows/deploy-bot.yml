@@ -50,14 +50,14 @@ jobs:
 
             echo "=== Docker: replace container ==="
             
-            # Останавливаем, ждём и удаляем контейнер, если он всё ещё существует
+            # Stop, wait and remove container if it still exists
             docker stop wordle-bot || true
             
-            # Немного подождать, чтобы Docker освободил имя
+            # Wait a bit for Docker to release the name
             sleep 2
             docker rm wordle-bot || true
             
-            # Запуск нового контейнера
+            # Start new container
             docker run -d \
               --name wordle-bot \
               --restart unless-stopped \

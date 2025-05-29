@@ -31,7 +31,6 @@ async def global_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_user_activity(update.effective_user)
     store = load_store()
     g = store["global"]
-    # если во время партии — запрет
     uid = str(update.effective_user.id)
     user = store["users"].get(uid)
     if user and "current_game" in user:

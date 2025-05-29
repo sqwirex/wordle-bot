@@ -10,24 +10,24 @@ logger = logging.getLogger(__name__)
 
 async def send_unfinished_games(context: ContextTypes.DEFAULT_TYPE):
     """
-    Шлёт напоминание тем, у кого включены уведомления о незавершённой игре,
-    но только если после последнего напоминания пользователь ни разу не отреагировал.
-    После отправки ставит флаг, чтобы больше не присылать, пока пользователь не сыграет/не напишет.
+    Sends a reminder to users who have notifications enabled for unfinished games,
+    but only if the user hasn't responded since the last reminder.
+    After sending, sets a flag to prevent further notifications until the user plays or sends a message.
     """
     store = load_store()
 
     for uid, udata in store["users"].items():
-        # уведомления выключены
+        # notifications are disabled
         if not udata.get("notify_on_wakeup", True):
             continue
-        # у пользователя нет незаконченной игры
+        # user has no unfinished game
         if "current_game" not in udata:
             continue
-        # если уже отправляли и пользователь не отреагировал — пропускаем
+        # if already sent and user hasn't responded — skip
         if udata.get("notified", False):
             continue
 
-        # Отправляем напоминание
+        # Send reminder
         cg = udata["current_game"]
         length = len(cg["secret"])
         attempts = cg["attempts"]
@@ -38,7 +38,7 @@ async def send_unfinished_games(context: ContextTypes.DEFAULT_TYPE):
             logger.warning(f"Не смогли напомнить {uid}: {e}")
             continue
 
-        # Запоминаем время отправки
+        # Remember sending time
         udata["notified"] = True
         save_store(store)
 
@@ -49,7 +49,7 @@ async def notification_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE
     store = load_store()
     user = store["users"].setdefault(uid, {"stats": {...}})
     clear_notification_flag(str(update.effective_user.id))
-    # Переключаем
+    # Toggle
     current = user.get("notify_on_wakeup", True)
     user["notify_on_wakeup"] = not current
     save_store(store)

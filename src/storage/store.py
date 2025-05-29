@@ -3,8 +3,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from src.main.config import SUGGESTIONS_FILE, USER_FILE
 
+# Return {'black': set(...), 'white': set(...), 'add': set(...)} without dublicate.
 def load_suggestions() -> dict[str, set[str]]:
-    """Возвращает {'black': set(...), 'white': set(...), 'add': set(...)} без дубликатов."""
     if not SUGGESTIONS_FILE.exists():
         return {"black": set(), "white": set(), "add": set()}
     raw = SUGGESTIONS_FILE.read_text("utf-8").strip()
@@ -21,11 +21,8 @@ def load_suggestions() -> dict[str, set[str]]:
         return {"black": set(), "white": set(), "add": set()}
 
 
-
+# Save suggestions, converted set to array.
 def save_suggestions(sugg: dict[str, set[str]]):
-    """
-    Сохраняет suggestions, конвертируя множества в отсортированные списки.
-    """
     out = {
         "black": sorted(sugg["black"]),
         "white": sorted(sugg["white"]),
@@ -35,18 +32,11 @@ def save_suggestions(sugg: dict[str, set[str]]):
         json.dump(out, f, ensure_ascii=False, indent=2)
 
 
-# загружаем один раз при старте
+# load once on start
 suggestions = load_suggestions()
 
+# load user_activity.json
 def load_store() -> dict:
-    """
-    Загружает user_activity.json.
-    Если файла нет или он пуст/битый — возвращает чистый шаблон:
-    {
-      "users": {},
-      "global": { "total_games":0, "total_wins":0, "total_losses":0, "win_rate":0.0 }
-    }
-    """
     template = {
         "users": {},
         "global": {
@@ -68,65 +58,50 @@ def load_store() -> dict:
     except json.JSONDecodeError:
         return template
 
-    # Убедимся, что структура корректна
+    # check structure
     if not isinstance(data, dict):
         return template
-
-    # Проверим разделы
     if not isinstance(data.get("users"), dict):
         data["users"] = {}
     if not isinstance(data.get("global"), dict):
         data["global"] = template["global"].copy()
 
-    # Подставим недостающие ключи в global
+    # add key to global
     for key, val in template["global"].items():
         data["global"].setdefault(key, val)
 
     return data
 
+# save user_activity.json
 def save_store(store: dict) -> None:
-    """
-    Сохраняет переданный store в USER_FILE в JSON-формате с отступами.
-    Ожидаем, что store имеет формат:
-    {
-      "users": { ... },
-      "global": { ... }
-    }
-    """
     USER_FILE.write_text(
         json.dumps(store, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
 
+# Create or upload user in store['users']:
 def update_user_activity(user) -> None:
-    """
-    Создает или обновляет запись user в store['users'], добавляя:
-    - first_name, last_name, username
-    - is_bot, is_premium, language_code
-    - last_seen_msk (по московскому времени)
-    - stats (если еще нет): games_played, wins, losses, win rate
-    - banned: флаг бана пользователя (если не установлен, то False)
-    """
+    
     store = load_store()
     uid = str(user.id)
     users = store["users"]
 
-    # Если пользователь впервые — создаем базовую запись
+    # if new user:
     if uid not in users:
         users[uid] = {
             "first_name": user.first_name,
-            "suggested_words": [],  # Список слов, предложенных пользователем
+            "suggested_words": [], 
             "stats": {
                 "games_played": 0,
                 "wins": 0,
                 "losses": 0,
                 "win_rate": 0.0
             },
-            "banned": False  # По умолчанию пользователь не забанен
+            "banned": False
         }
 
     u = users[uid]
-    # Обновляем поля профиля
+    # upload
     u["first_name"]    = user.first_name
     u["last_name"]     = user.last_name
     u["username"]      = user.username
@@ -145,9 +120,8 @@ def clear_notification_flag(user_id: str):
         u["notified"] = False
         save_store(store)
 
-
+# check ban flag
 async def is_banned(user_id: str) -> bool:
-    """Проверяет, забанен ли пользователь"""
     store = load_store()
     user_data = store["users"].get(str(user_id), {})
     return user_data.get("banned", False)

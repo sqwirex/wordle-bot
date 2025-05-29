@@ -21,7 +21,6 @@ async def ask_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
     u = store["users"].get(str(update.effective_user.id), {})
     if "current_game" in u:
         cg = u["current_game"]
-        # заполняем context.user_data из cg:
         context.user_data.update({
             "secret": cg["secret"],
             "length": len(cg["secret"]),
@@ -58,7 +57,6 @@ async def receive_length(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     store = load_store()
     u = store["users"].setdefault(str(update.effective_user.id), {"stats": {"games_played":0,"wins":0,"losses":0}})
-    # Запись текущей игры
     u["current_game"] = {
         "secret": secret,
         "attempts": 0,

@@ -14,7 +14,6 @@ from src.game.logic import WORDLIST
 logger = logging.getLogger(__name__)
 
 async def suggestions_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # только админ
     if update.effective_user.id != ADMIN_ID:
         return
     sugg = load_suggestions()
@@ -33,18 +32,15 @@ async def suggestions_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def suggestions_move_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Только админ
     if update.effective_user.id != ADMIN_ID:
         return
 
-    # Блокируем во время игры
     store = load_store()
     u = store["users"].get(str(update.effective_user.id), {})
     if "current_game" in u or context.user_data.get("game_active"):
         await update.message.reply_text("Эту команду можно использовать только вне игры.")
         return ConversationHandler.END
 
-    # Если все ок — запускаем диалог перемещения
     await update.message.reply_text(
         "Введи слова для перемещения в add список (формат):\n"
         "слово1, слово2, слово3\n\n"
@@ -55,7 +51,6 @@ async def suggestions_move_start(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def suggestions_move_process(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # только админ
     if update.effective_user.id != ADMIN_ID:
         return ConversationHandler.END
     
@@ -64,15 +59,14 @@ async def suggestions_move_process(update: Update, context: ContextTypes.DEFAULT
     sugg = load_suggestions()
     moved = {"black": [], "white": []}
 
-    # извлекаем слова через запятую
     words = [w.strip().lower() for w in text.split(",") if w.strip()]
     for w in words:
-        # Проверяем наличие слова в черном списке
+        # Check if word exists in blacklist
         if w in sugg["black"]:
             sugg["black"].remove(w)
             sugg["add"].add(w)
             moved["black"].append(w)
-        # Проверяем наличие слова в белом списке
+        # Check if word exists in whitelist
         elif w in sugg["white"]:
             sugg["white"].remove(w)
             sugg["add"].add(w)
@@ -80,7 +74,6 @@ async def suggestions_move_process(update: Update, context: ContextTypes.DEFAULT
 
     save_suggestions(sugg)
     
-    # формируем ответ
     parts = []
     if moved["black"]:
         parts.append(f'Из черного списка перемещено в add: {", ".join(moved["black"])}')
@@ -96,18 +89,15 @@ async def suggestions_move_process(update: Update, context: ContextTypes.DEFAULT
 
 
 async def suggestions_remove_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Только админ
     if update.effective_user.id != ADMIN_ID:
         return
 
-    # Блокируем во время игры
     store = load_store()
     u = store["users"].get(str(update.effective_user.id), {})
     if "current_game" in u or context.user_data.get("game_active"):
         await update.message.reply_text("Эту команду можно использовать только вне игры.")
         return ConversationHandler.END
 
-    # Если все ок — запускаем диалог удаления
     await update.message.reply_text(
         "Введи, что удалить (формат):\n"
         "black: слово1, слово2\n"
@@ -119,7 +109,6 @@ async def suggestions_remove_start(update: Update, context: ContextTypes.DEFAULT
 
 
 async def suggestions_remove_process(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # только админ
     if update.effective_user.id != ADMIN_ID:
         return ConversationHandler.END
     
@@ -128,7 +117,6 @@ async def suggestions_remove_process(update: Update, context: ContextTypes.DEFAU
     sugg = load_suggestions()
     removed = {"black": [], "white": [], "add": []}
 
-    # парсим построчно
     for line in text.splitlines():
         if ":" not in line:
             continue
@@ -136,7 +124,6 @@ async def suggestions_remove_process(update: Update, context: ContextTypes.DEFAU
         key = key.strip().lower()
         if key not in ("black", "white", "add"):
             continue
-        # извлекаем слова через запятую
         words = [w.strip().lower() for w in vals.split(",") if w.strip()]
         for w in words:
             if w in sugg[key]:
@@ -145,14 +132,13 @@ async def suggestions_remove_process(update: Update, context: ContextTypes.DEFAU
 
     save_suggestions(sugg)
     
-    # Удаляем слова из профилей пользователей
     store = load_store()
     removed_count = 0
     
-    # Собираем все удаленные слова из всех списков
+    # Collect all removed words from all lists
     all_removed_words = set(removed["black"]) | set(removed["white"]) | set(removed["add"])
     
-    # Проходим по всем пользователям и удаляем слова из их списков
+    # Go through all users and remove words from their lists
     for user_id, user_data in store["users"].items():
         if "suggested_words" in user_data:
             before = len(user_data["suggested_words"])
@@ -160,11 +146,11 @@ async def suggestions_remove_process(update: Update, context: ContextTypes.DEFAU
                                          if w not in all_removed_words]
             removed_count += before - len(user_data["suggested_words"])
     
-    # Сохраняем изменения, если что-то было удалено
+    # Save changes if anything was removed
     if removed_count > 0:
         save_store(store)
     
-    # формируем ответ
+    # form response
     parts = []
     if removed["black"]:
         parts.append(f'Из черного удалено: {", ".join(removed["black"])}')
@@ -187,45 +173,45 @@ async def suggestions_approve(update: Update, context: ContextTypes.DEFAULT_TYPE
     if update.effective_user.id != ADMIN_ID:
         return
 
-    # 1. Загружаем предложения
+    # 1. Load suggestions
     sugg = load_suggestions()  # {'black': set(), 'white': set(), 'add': set()}
 
-    # 2. Читаем текущий base_words.json
+    # 2. Read current base_words.json
     with BASE_FILE.open("r", encoding="utf-8") as f:
         data = json.load(f)
         main_words = set(data.get("main", []))
         additional_words = set(data.get("additional", []))
 
-    # 3. Убираем «чёрные» и добавляем «белые» и «add»
+    # 3. Remove "black" and add "white" and "add"
     main_words -= sugg["black"]
     main_words |= sugg["white"]
     additional_words |= sugg["add"]
 
-    # 4. Фильтруем по критериям (только буквы, длина 4–11) и сортируем
+    # 4. Filter by criteria (letters only, length 4-11) and sort
     filtered_main = [w for w in main_words if w.isalpha() and 4 <= len(w) <= 11]
     filtered_main.sort()
     filtered_additional = [w for w in additional_words if w.isalpha() and 4 <= len(w) <= 11]
     filtered_additional.sort()
 
-    # 5. Сохраняем обратно в base_words.json
+    # 5. Save back to base_words.json
     with BASE_FILE.open("w", encoding="utf-8") as f:
         json.dump({"main": filtered_main, "additional": filtered_additional}, f, ensure_ascii=False, indent=2)
 
     logger.info(f"-> Wrote {len(filtered_main)} main words and {len(filtered_additional)} additional words to {BASE_FILE.resolve()}")
 
-    # 6. Обновляем глобальный список в памяти
+    # 6. Update global list in memory
     global WORDLIST
     WORDLIST = filtered_main
 
-    # 7. Удаляем одобренные слова из списка предложенных у пользователей
+    # 7. Remove approved words from users' suggested lists
     store = load_store()
     removed_count = 0
     
-    # Собираем все одобренные слова (белый список и add список)
+    # Collect all approved words (whitelist and add list)
     approved_words = sugg["white"] | sugg["add"]
     blacklisted_words = sugg["black"]
     
-    # Проходим по всем пользователям и удаляем одобренные слова из их списков
+    # Go through all users and remove approved words from their lists
     for user_id, user_data in store["users"].items():
         if "suggested_words" in user_data:
             before = len(user_data["suggested_words"])
@@ -235,14 +221,14 @@ async def suggestions_approve(update: Update, context: ContextTypes.DEFAULT_TYPE
             ]
             removed_count += before - len(user_data["suggested_words"])
     
-    # Сохраняем изменения, если что-то было удалено
+    # Save changes if anything was removed
     if removed_count > 0:
         save_store(store)
 
-    # 8. Очищаем suggestions.json
+    # 8. Clear suggestions.json
     save_suggestions({"black": set(), "white": set(), "add": set()})
 
-    # 9. Ответ админу
+    # 9. Reply to admin
     await update.message.reply_text(
         f"Словарь пересобран: +{len(sugg['white'])}, +{len(sugg['add'])}, -{len(sugg['black'])}.\n"
         f"Удалено {removed_count} слов (одобренные и черный список) из профилей пользователей.\n"

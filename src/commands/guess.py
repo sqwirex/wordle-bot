@@ -14,7 +14,7 @@ from src.languages.russian import (SPACE_ATTENTION, MSG_LENGTH_VALIDATE,
                                    SUGGESTION_SUGGESTED_NOW, SUGGESTED_ADD_WORD, 
                                    MSG_NOT_FOUND, MSG_ATTEMPT, pluralize_attempt,
                                    MSG_WIN, MSG_GAME_OVER, START_AND_PLAY_NOT_WORK,
-                                   MSG_SUGGESTION_ADDED
+                                   MSG_SUGGESTION_ADDED, replace_yo
 ) 
 
 @check_ban_status
@@ -26,30 +26,30 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "stats": {"games_played": 0, "wins": 0, "losses": 0}
     })
 
-    # Обновляем время последнего визита
+    # Update last visit time
     user["last_seen_msk"] = datetime.now(ZoneInfo("Europe/Moscow")).isoformat()
 
     cg     = user["current_game"]
-    guess = normalize(update.message.text)
+    guess = normalize(replace_yo(update.message.text))
     secret = cg["secret"]
     length = len(secret)
 
-    # Нормализуем слово для проверки (приводим к нижний регистр и заменяем ё на е)
-    normalized_guess = normalize(guess)
+    # Normalize word for checking
+    normalized_guess = normalize(replace_yo(guess))
     
-    # Проверяем на пробелы до проверки длины
+    # Check for spaces before length validation
     if " " in guess:
         await update.message.reply_text(SPACE_ATTENTION)
         return GUESSING
     
-    # Валидация длины
+    # Length validation
     if len(guess) != length:
         await update.message.reply_text(
             MSG_LENGTH_VALIDATE.format(length=length)
         )
         return GUESSING
     
-    # Проверяем, не предлагал ли пользователь это слово ранее
+    # Check if user has suggested this word before
     user_id = str(update.effective_user.id)
     user = store["users"].get(user_id, {})
     suggested_words = user.get("suggested_words", [])
@@ -58,7 +58,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(SUGGESTION_SUGGESTED_NOW)
         return GUESSING
     
-    # Проверяем слово в основном и дополнительном списках
+    # Check word in main and additional lists
     with BASE_FILE.open("r", encoding="utf-8") as f:
         data = json.load(f)
         main_words = set(data.get("main", []))
@@ -66,7 +66,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         all_words = main_words | additional_words
     
     if normalized_guess not in all_words:
-        # Предлагаем добавить слово в белый список
+        # Suggest adding word to whitelist
         keyboard = [
             [
                 InlineKeyboardButton(
@@ -86,13 +86,12 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(SPACE_ATTENTION)
         return GUESSING
 
-    # Сохраняем ход
+    # Save the move
     cg["guesses"].append(guess)
     cg["attempts"] += 1
     save_store(store)
 
-    # Рендерим доску из 6 строк + мини-клавиатуру снизу.
-    # Клавиатура будет крупнее для слов ≥8 букв, чуть меньше для 7 и еще меньше для 4–5.
+    # Render board with 6 rows + mini-keyboard at the bottom
     img_buf = render_full_board_with_keyboard(
         guesses=cg["guesses"],
         secret=secret,
@@ -104,7 +103,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption=MSG_ATTEMPT.format(attempt=cg['attempts'])
     )
 
-    # —— Победа ——
+    # —— Victory ——
     if guess == secret:
         stats = user["stats"]
         stats["games_played"] += 1
@@ -139,7 +138,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_store(store)
         return ConversationHandler.END
 
-    # —— Поражение ——
+    # —— Defeat ——
     if cg["attempts"] >= 6:
         stats = user["stats"]
         stats["games_played"] += 1
@@ -161,7 +160,7 @@ async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_store(store)
         return ConversationHandler.END
 
-    # Игра продолжается
+    # Game continues
     return GUESSING
 
 
@@ -173,32 +172,32 @@ async def ignore_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @check_ban_status
 async def suggest_white_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик нажатия на кнопку предложения слова в белый список"""
+    # Handler for clicking the button to suggest a word to the whitelist
     query = update.callback_query
     await query.answer()
     
-    # Извлекаем слово из callback_data и нормализуем его
-    word = normalize(query.data.split(':', 1)[1])
+    # Extract word from callback_data and normalize it
+    word = normalize(replace_yo(query.data.split(':', 1)[1]))
     user_id = str(update.effective_user.id)
     
-    # Загружаем текущие предложения и основной словарь
+    # Load current suggestions and main dictionary
     current_suggestions = load_suggestions()
     with BASE_FILE.open("r", encoding="utf-8") as f:
         base_words = set(json.load(f))
     
-    # Загружаем данные пользователя
+    # Load user data
     store = load_store()
     user = store["users"].get(user_id, {})
     
-    # Добавляем слово в предложения для белого списка, если его там еще нет
+    # Add word to whitelist suggestions if it's not there yet
     if word not in current_suggestions["white"] and word not in base_words:
         current_suggestions["white"].add(word)
         save_suggestions(current_suggestions)
-        # Обновляем глобальную переменную
+        # Update global variable
         global suggestions
         suggestions = current_suggestions
     
-    # Добавляем слово в список предложенных пользователем, если его там еще нет
+    # Add word to user's suggested words list if it's not there yet
     if "suggested_words" not in user:
         user["suggested_words"] = []
     
@@ -206,7 +205,7 @@ async def suggest_white_callback(update: Update, context: ContextTypes.DEFAULT_T
         user["suggested_words"].append(word)
         save_store(store)
     
-    # Обновляем сообщение, убирая кнопку
+    # Update message, removing the button
     await query.edit_message_text(
         MSG_SUGGESTION_ADDED.format(word=word)
     )
