@@ -9,11 +9,12 @@ from telegram.ext import (
     ConversationHandler,
     filters
 )
+from src.main.config import (BOT_TOKEN)
 # Импортируем константы и команды
 from src.main.constants import (
     ASK_LENGTH, GUESSING,
     FEEDBACK_CHOOSE, FEEDBACK_WORD,
-    REMOVE_INPUT, BROADCAST, BOT_TOKEN,
+    REMOVE_INPUT, BROADCAST,
 )
 from src.commands.start import start
 from src.commands.play import ask_length, receive_length, ignore_ask
