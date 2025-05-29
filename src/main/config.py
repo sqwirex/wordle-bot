@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 # Корневой каталог проекта (где лежит bot.py и прочие модули)
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).parent.parent
 
 # Папка с статическими ассетами
 ASSETS_DIR = ROOT / "assets"
