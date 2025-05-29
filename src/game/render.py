@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..game.logic import make_feedback, compute_letter_status
 from ..constants import GREEN, YELLOW, WHITE
+from ..config import FONT_FILE
 
 # Русская раскладка виртуальной клавиатуры
 KB_LAYOUT = [
@@ -49,8 +50,8 @@ def render_full_board_with_keyboard(
 
     img        = Image.new("RGB", (board_w, img_h), (24, 24, 32))  # почти чёрный фон
     draw       = ImageDraw.Draw(img)
-    font_board = ImageFont.truetype("DejaVuSans-Bold.ttf", int(board_sq * 0.6))
-    font_kb    = ImageFont.truetype("DejaVuSans-Bold.ttf", int(kb_sq * 0.6))
+    font_board = ImageFont.truetype(FONT_FILE, int(board_sq * 0.6))
+    font_kb    = ImageFont.truetype(FONT_FILE, int(kb_sq * 0.6))
 
     # --- игровая доска (6 строк) ---
     for r in range(total_rows):
