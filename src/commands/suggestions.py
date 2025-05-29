@@ -6,7 +6,7 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-from ..storage.store import load_store, save_store, load_suggestions, save_suggestions
+from storage.store import load_store, save_store, load_suggestions, save_suggestions
 from main.config import ADMIN_ID, BASE_FILE
 from main.constants import REMOVE_INPUT
 from game.logic import WORDLIST

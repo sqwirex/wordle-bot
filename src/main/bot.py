@@ -10,7 +10,7 @@ from telegram.ext import (
     filters
 )
 # Импортируем константы и команды
-from constants import (
+from main.constants import (
     ASK_LENGTH, GUESSING,
     FEEDBACK_CHOOSE, FEEDBACK_WORD,
     REMOVE_INPUT, BROADCAST, BOT_TOKEN,
