@@ -56,5 +56,3 @@ async def broadcast_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Рассылка отменена.")
     context.user_data.pop("in_broadcast", None)
     return ConversationHandler.END
-
-
