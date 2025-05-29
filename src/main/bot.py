@@ -10,44 +10,44 @@ from telegram.ext import (
     filters
 )
 # Импортируем константы и команды
-from main.constants import (
+from src.main.constants import (
     ASK_LENGTH, GUESSING,
     FEEDBACK_CHOOSE, FEEDBACK_WORD,
     REMOVE_INPUT, BROADCAST, BOT_TOKEN,
 )
-from commands.start import start
-from commands.play import ask_length, receive_length, ignore_ask
-from commands.guess import handle_guess, ignore_guess, suggest_white_callback
-from commands.hint import hint, hint_not_allowed
-from commands.reset import reset, reset_global
-from commands.stats import my_stats, only_outside_game, global_stats
-from commands.feedback    import (feedback_not_allowed_ask,
+from src.commands.start import start
+from src.commands.play import ask_length, receive_length, ignore_ask
+from src.commands.guess import handle_guess, ignore_guess, suggest_white_callback
+from src.commands.hint import hint, hint_not_allowed
+from src.commands.reset import reset, reset_global
+from src.commands.stats import my_stats, only_outside_game, global_stats
+from src.commands.feedback    import (feedback_not_allowed_ask,
                                       feedback_not_allowed_guess,
                                       feedback_start,
                                       feedback_choose,
                                       feedback_word,
                                       block_during_feedback,
                                       feedback_cancel)
-from commands.suggestions import (suggestions_view,
+from src.commands.suggestions import (suggestions_view,
                                       suggestions_approve,
                                       suggestions_remove_start,
                                       suggestions_remove_process,
                                       suggestions_move_start,
                                       suggestions_move_process,
                                       )
-from commands.broadcast   import (broadcast_start,
+from src.commands.broadcast   import (broadcast_start,
                                       broadcast_send,
                                       broadcast_cancel,
                                       )
-from commands.admin       import (ban_user, 
+from src.commands.admin       import (ban_user, 
                                       unban_user, 
                                       dump_activity, 
                                       set_commands,
                                       dict_file,
                                       send_activity_periodic
                                       )
-from commands.notification import notification_toggle, send_unfinished_games
-from commands.unknown     import unknown_text
+from src.commands.notification import notification_toggle, send_unfinished_games
+from src.commands.unknown     import unknown_text
 # Загрузка .env
 load_dotenv()
 

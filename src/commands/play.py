@@ -2,10 +2,10 @@ import random
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from storage.store import load_store, save_store, clear_notification_flag, update_user_activity
-from main.constants import ASK_LENGTH, GUESSING
-from game.logic import WORDLIST
-from decorators.checkban import check_ban_status
+from src.storage.store import load_store, save_store, clear_notification_flag, update_user_activity
+from src.main.constants import ASK_LENGTH, GUESSING
+from src.game.logic import WORDLIST
+from src.decorators.checkban import check_ban_status
 
 # ...existing code...
 @check_ban_status

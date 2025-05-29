@@ -3,10 +3,10 @@ from collections import Counter
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 
-from storage.store import load_store, save_store, clear_notification_flag
-from decorators.checkban import check_ban_status
-from game.logic import WORDLIST
-from main.constants import GUESSING, ASK_LENGTH
+from src.storage.store import load_store, save_store, clear_notification_flag
+from src.decorators.checkban import check_ban_status
+from src.game.logic import WORDLIST
+from src.main.constants import GUESSING, ASK_LENGTH
 
 @check_ban_status
 async def hint(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -1,8 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 
-from storage.store import load_store, save_store, clear_notification_flag, update_user_activity
-from decorators.checkban import check_ban_status
+from src.storage.store import load_store, save_store, clear_notification_flag, update_user_activity
+from src.decorators.checkban import check_ban_status
 
 @check_ban_status
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):

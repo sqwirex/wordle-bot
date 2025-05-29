@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 import logging
 
-from storage.store import load_store, save_store
+from src.storage.store import load_store, save_store
 
 logger = logging.getLogger(__name__)
 
