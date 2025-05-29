@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List
-from ..config import BASE_FILE
-from ..constants import GREEN, YELLOW, WHITE
+from main.config import BASE_FILE
+from main.constants import GREEN, YELLOW, WHITE
 
 
 def normalize(text: str) -> str:

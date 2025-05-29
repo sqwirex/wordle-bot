@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from ..config import SUGGESTIONS_FILE, USER_FILE
+from main.config import SUGGESTIONS_FILE, USER_FILE
 
 def load_suggestions() -> dict[str, set[str]]:
     """Возвращает {'black': set(...), 'white': set(...), 'add': set(...)} без дубликатов."""

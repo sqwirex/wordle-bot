@@ -1,8 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from ..commands.middlewares import check_ban_status
-from ..storage.store import clear_notification_flag
+from decorators.checkban import check_ban_status
+from storage.store import clear_notification_flag
 
 @check_ban_status
 async def unknown_text(update: Update, context: ContextTypes.DEFAULT_TYPE):

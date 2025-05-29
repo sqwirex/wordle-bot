@@ -6,8 +6,8 @@ from collections import Counter
 from telegram import Update, BotCommand, BotCommandScopeChat, InputFile
 from telegram.ext import ContextTypes
 
-from ..storage.store import load_store, save_store
-from ..config import ADMIN_ID, BASE_FILE, USER_FILE
+from storage.store import load_store, save_store
+from main.config import ADMIN_ID, BASE_FILE, USER_FILE
 
 logger = logging.getLogger(__name__)
 

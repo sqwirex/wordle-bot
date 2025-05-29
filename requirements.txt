@@ -1,5 +1,4 @@
 # requirements.txt
-python-telegram-bot[job-queue]
-python-dotenv
-pillow
-
+python-telegram-bot[job-queue]==21.3
+python-dotenv==1.0.1
+pillow==10.3.0

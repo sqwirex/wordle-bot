@@ -5,9 +5,9 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-from ..storage.store import load_store
-from ..config import ADMIN_ID
-from ..constants import BROADCAST
+from storage.store import load_store
+from main.config import ADMIN_ID
+from main.constants import BROADCAST
 
 logger = logging.getLogger(__name__)
 

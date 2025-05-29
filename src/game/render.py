@@ -1,16 +1,10 @@
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
-from ..game.logic import make_feedback, compute_letter_status
-from ..constants import GREEN, YELLOW, WHITE
-from ..config import FONT_FILE
+from game.logic import make_feedback, compute_letter_status
+from main.constants import GREEN, YELLOW, WHITE, KB_LAYOUT
+from main.config import FONT_FILE
 
-# Русская раскладка виртуальной клавиатуры
-KB_LAYOUT = [
-    list("йцукенгшщзхъ"),
-    list("фывапролджэ"),
-    list("ячсмитьбю")
-]
 
 def render_full_board_with_keyboard(
     guesses: list[str],

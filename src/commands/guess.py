@@ -4,12 +4,12 @@ from zoneinfo import ZoneInfo
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import ContextTypes, ConversationHandler
 
-from ..storage.store import load_store, save_store, load_suggestions, save_suggestions
-from ..commands.middlewares import check_ban_status
-from ..game.logic import WORDLIST, normalize
-from ..game.render import render_full_board_with_keyboard
-from ..config import BASE_FILE
-from ..constants import GUESSING
+from storage.store import load_store, save_store, load_suggestions, save_suggestions
+from decorators.checkban import check_ban_status
+from game.logic import WORDLIST, normalize
+from game.render import render_full_board_with_keyboard
+from main.config import BASE_FILE
+from main.constants import GUESSING
 
 @check_ban_status
 async def handle_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):

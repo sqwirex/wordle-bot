@@ -7,9 +7,9 @@ from telegram.ext import (
 )
 
 from ..storage.store import load_store, save_store, load_suggestions, save_suggestions
-from ..config import ADMIN_ID, BASE_FILE
-from ..constants import REMOVE_INPUT
-from ..game.logic import WORDLIST
+from main.config import ADMIN_ID, BASE_FILE
+from main.constants import REMOVE_INPUT
+from game.logic import WORDLIST
 
 logger = logging.getLogger(__name__)
 
