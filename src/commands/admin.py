@@ -111,21 +111,26 @@ async def dump_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Ban user by ID
+async def _validate_user_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> tuple[bool, str | None]:
+    """Validate user ID from command arguments."""
     if update.effective_user.id != ADMIN_ID:
-        return
+        return False, None
     
-    # Check if user ID is provided
     if not context.args:
-        await update.message.reply_text("❌ Укажите ID пользователя: /ban <user_id>")
-        return
+        await update.message.reply_text("❌ Укажите ID пользователя: /command <user_id>")
+        return False, None
     
     user_id = context.args[0].strip()
     
-    # Check ID format
     if not user_id.isdigit():
         await update.message.reply_text("❌ Неверный формат ID. ID должен состоять только из цифр.")
+        return False, None
+    
+    return True, user_id
+
+async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    is_valid, user_id = await _validate_user_id(update, context)
+    if not is_valid:
         return
     
     store = load_store()
@@ -167,20 +172,8 @@ async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def unban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Unban user by ID
-    if update.effective_user.id != ADMIN_ID:
-        return
-    
-    # Check if user ID is provided
-    if not context.args:
-        await update.message.reply_text("❌ Укажите ID пользователя: /unban <user_id>")
-        return
-    
-    user_id = context.args[0].strip()
-    
-    # Check ID format
-    if not user_id.isdigit():
-        await update.message.reply_text("❌ Неверный формат ID. ID должен состоять только из цифр.")
+    is_valid, user_id = await _validate_user_id(update, context)
+    if not is_valid:
         return
     
     store = load_store()
@@ -201,7 +194,6 @@ async def unban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 del users[user_id]["current_game"]
             # Set flag that user was unbanned
             users[user_id]["was_banned"] = True
-            save_store(store)
             save_store(store)
             await update.message.reply_text(f"✅ Пользователь {users[user_id].get('first_name', user_id)} (ID: {user_id}) успешно разблокирован.")
             try:

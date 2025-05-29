@@ -185,18 +185,21 @@ def main():
         group=99
         )
     
-
-    # global
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("hint", hint_not_allowed))
-    app.add_handler(CommandHandler("reset", reset_global))
-    app.add_handler(CommandHandler("notification", notification_toggle))
-    app.add_handler(CommandHandler("my_stats", my_stats))
-    app.add_handler(CommandHandler("global_stats", global_stats))
-    app.add_handler(CommandHandler("dict_file", dict_file))
-    app.add_handler(CommandHandler("dump_activity", dump_activity))
-    app.add_handler(CommandHandler("ban", ban_user))
-    app.add_handler(CommandHandler("unban", unban_user))
+    # global commands
+    global_commands = [
+        ("hint", hint_not_allowed),
+        ("reset", reset_global),
+        ("notification", notification_toggle),
+        ("my_stats", my_stats),
+        ("global_stats", global_stats),
+        ("dict_file", dict_file),
+        ("dump_activity", dump_activity),
+        ("ban", ban_user),
+        ("unban", unban_user)
+    ]
+    
+    for command, handler in global_commands:
+        app.add_handler(CommandHandler(command, handler))
     
     app.add_handler(CallbackQueryHandler(suggest_white_callback, pattern=r'^suggest_white:'))
 
