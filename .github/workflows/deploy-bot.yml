@@ -1,0 +1,71 @@
+name: 🤖 Deploy Wordle Bot
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Deploy Bot via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          port:     ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -xe
+
+            BASE_DIR=/home/${{ secrets.VPS_USER }}/wordle-bot
+            cd $BASE_DIR
+
+            echo "=== Git: fetch & checkout main ==="
+            git fetch origin main
+            git checkout main
+
+            echo "=== Git: commit VM-side changes ==="
+            if [ -n "$(git status --porcelain src/assets/data/base_words.json)" ]; then
+              git add src/assets/data/base_words.json
+              git commit -m "ci: sync wordlist from VM @ $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              git push --force origin main
+            else
+              echo "No VM-side changes to commit."
+            fi
+
+            echo "=== Git: hard-reset to origin/main ==="
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "=== Docker: build image ==="
+            docker build -t wordle-bot .
+
+            echo "=== Docker: replace container ==="
+            
+            # Stop, wait and remove container if it still exists
+            docker stop wordle-bot || true
+            
+            # Wait a bit for Docker to release the name
+            sleep 2
+            docker rm wordle-bot || true
+            
+            # Start new container
+            docker run -d \
+              --name wordle-bot \
+              --restart unless-stopped \
+              -v $BASE_DIR/src/assets/data:/app/src/assets/data \
+              --env-file $BASE_DIR/.env \
+              wordle-bot
+
+            echo "=== Docker: prune dangling images ==="
+            docker image prune -f
+
+            echo "✅ Bot deployed and wordlist synced"

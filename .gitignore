@@ -1,0 +1,5 @@
+.env
+/src/assets/data/user_activity.json
+/src/assets/data/suggestions.json
+__pycache__/
+*.py[cod]
