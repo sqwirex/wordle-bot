@@ -1,6 +1,6 @@
 # requirements.txt
 python-telegram-bot[job-queue]==21.3
 python-dotenv==1.2.2
-pillow==12.2.0
+pillow==12.3.0
 # old version: pillow==10.3.0
 # old version: python-dotenv==1.0.1
